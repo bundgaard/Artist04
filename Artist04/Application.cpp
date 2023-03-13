@@ -80,7 +80,7 @@ Win32CreateRenderTarget(HWND hwnd)
 	
 }
 internal LRESULT CALLBACK
-WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+Win32WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	switch (msg)
 	{
@@ -139,8 +139,14 @@ WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		UINT Dpi = GetDpiForWindow(hwnd);
 		int Width = (ps.rcPaint.right - ps.rcPaint.left) * Dpi / 96;
 		int Height = (ps.rcPaint.bottom - ps.rcPaint.top) * Dpi / 96;
+		HDC memdc = CreateCompatibleDC(0);
+		HBITMAP memBm = CreateCompatibleBitmap(memdc, 0,0);
+		SelectObject(memdc, memBm);
+		BitBlt(memdc, 0, 0, Width, Height, pWriteBitmapRender->GetMemoryDC(), 0, 0, SRCCOPY);
 
-		BitBlt(hdc, 0, 0, Width, Height, pWriteBitmapRender->GetMemoryDC(), 0, 0, SRCCOPY);
+
+
+		BitBlt(hdc, 0, 0, Width, Height, memdc, 0, 0, SRCCOPY);
 		EndPaint(hwnd, &ps);
 	}
 	return 0;
@@ -160,7 +166,7 @@ Win32Register()
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.hInstance = THIS_HINSTCOMPONENT;
 	wc.lpszClassName = CLASSNAME;
-	wc.lpfnWndProc = &WndProc;
+	wc.lpfnWndProc = &Win32WndProc;
 	wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
 	wc.hbrBackground = (HBRUSH)GetStockObject(COLOR_APPWORKSPACE + 1);
 	wc.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
